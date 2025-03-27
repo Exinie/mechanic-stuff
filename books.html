@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Görüntüleme Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <style>
+        .category-list a{
+            text-decoration: none;
+        }
+
+        .navigation-bar a{
+            text-decoration: none;
+            color: white;
+        }
+
+        table a{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="p-3 bg-dark text-white navigation-bar"><a href="./index.html">< GERİ DÖN</a></div>
+    <div class="p-3 mb-2 bg-dark text-white display-1">Kılavuzlar</div>
+    <div class="">
+
+        <form id="search_form" autocomplete="off">
+            <input class="form-control form-control-lg" type="text" placeholder="Aramak için dokunun | Örneğin: 4L40E" id="search_input">
+        </form>
+
+        <br>
+
+        <table class="table table-striped display-5" id="list">
+            
+        </table>
+        
+    </div>
+  
+<script>
+    const repoUrl = 'https://api.github.com/repos/exinie/mechanic-stuff/contents/books';
+    
+    // Fetch files from the books folder
+    const fetchBooksFiles = async () => {
+        const response = await fetch(repoUrl);
+        const files = await response.json();
+        return files.filter(file => file.name.endsWith('.pdf'));
+    };
+    
+    // Filter files based on search input
+    const filterFiles = (files, filter) => {
+        filter = filter.toLowerCase();
+        return files.filter(file => file.name.toLowerCase().includes(filter));
+    };
+    
+    // Update the file list in UI
+    const updateList = (data, filter = '') => {
+        let htmlString = '';
+        const filteredFiles = filterFiles(data, filter);
+        
+        filteredFiles.forEach(file => {
+            const fileName = file.name.replace('.pdf', '');
+            const fileDisplayName = fileName.split('-').join(' ');
+            htmlString += `<tr><td><b><a href="${file.download_url}" target="_blank">${fileDisplayName}</a></b></td></tr>`;
+        });
+        
+        htmlString += '</ul>';
+        document.getElementById('list').innerHTML = htmlString;
+    };
+    
+    (async () => {
+        const data = await fetchBooksFiles();
+        
+        // Initialize search field
+        const search_form = document.getElementById('search_form');
+        const search_input = document.getElementById('search_input');
+        const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
+        search_input.value = search_value;
+        updateList(data, search_value);
+        
+        // Configure search box events
+        search_form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            updateList(data, search_input.value);
+        });
+        search_input.addEventListener('input', (event) => {
+            updateList(data, event.target.value);
+        });
+    })();
+</script>
+
+</body>
+</html>
